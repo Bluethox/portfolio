@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nolan Siche-Rémy, portfolio cyber</title>
+<!-- Tu cherches le flag ? Il voyage dans l'attribut data-cargo du colis jaune. base64, puis rot13. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Plan : un seul monde, bleu outremer de plan technique. Le parcours est un traceroute :
+   7 sauts dans un réseau 3D en traits de craie, texte à gauche, nœud à droite (au-dessus sur mobile). */
+:root{
+  color-scheme: dark;
+  --outremer:#1a2fd0;
+  --outremer-profond:#10209c;
+  --craie:#f2f4ff;
+  --craie-douce:#bcc6ff;
+  --drapeau:#ffd84a;
+  --trait:rgba(242,244,255,.28);
+  --titre:"Archivo","Arial Narrow",Arial,sans-serif;
+  --texte:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --marge:clamp(1.1rem,5vw,4.5rem);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--outremer);color:var(--craie);font-family:var(--texte);font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--drapeau);outline-offset:3px}
+
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.voile{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,var(--outremer) 0%,rgba(26,47,208,.82) 30%,rgba(26,47,208,0) 62%)}
+body.sans3d{background-image:linear-gradient(var(--trait) 1px,transparent 1px),linear-gradient(90deg,var(--trait) 1px,transparent 1px);background-size:56px 56px}
+body.sans3d .voile,body.sans3d #scene{display:none}
+
+.entete{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem var(--marge);background:linear-gradient(var(--outremer),rgba(26,47,208,0))}
+.entete .nom{font-family:var(--titre);font-stretch:125%;font-weight:800;text-decoration:none;letter-spacing:-.01em}
+.sauts{display:flex;gap:.25rem;list-style:none;margin:0;padding:0}
+.sauts a{display:block;padding:.3rem .6rem;text-decoration:none;font-size:.9rem;color:var(--craie-douce);border-bottom:2px solid transparent}
+.sauts a:hover{color:var(--craie)}
+.sauts a[aria-current="true"]{color:var(--craie);border-bottom-color:var(--drapeau)}
+.position{display:none;font-family:var(--mono);font-size:.8rem;color:var(--craie-douce)}
+.position b{color:var(--drapeau);font-weight:600}
+.langue{font:inherit;font-family:var(--mono);font-size:.8rem;font-weight:600;padding:.3rem .6rem;color:var(--craie);background:transparent;border:1px solid var(--craie);cursor:pointer}
+.langue:hover{color:var(--outremer-profond);background:var(--craie)}
+.entete nav{margin-left:auto}
+.avance{position:fixed;top:0;left:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--drapeau);z-index:6}
+
+main{position:relative;z-index:2}
+.saut{min-height:100vh;display:flex;align-items:center;padding:6rem var(--marge) 5rem}
+.contenu{width:min(35rem,46vw)}
+h1,h2{font-family:var(--titre);font-stretch:125%;font-weight:900;line-height:.92;letter-spacing:-.025em;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.6rem,5.6vw,5.2rem)}
+h2{font-size:clamp(2.1rem,4.6vw,3.6rem);margin-bottom:1.2rem}
+h3{font-family:var(--titre);font-stretch:112%;font-weight:800;font-size:1.2rem;line-height:1.2;margin:0 0 .3rem}
+p{margin:0 0 1rem;max-width:34rem}
+.chapo{font-size:1.25rem;line-height:1.45;margin-top:1.4rem}
+.adresse{font-family:var(--mono);font-size:.8rem;color:var(--drapeau);margin:0 0 .7rem}
+.doux{color:var(--craie-douce)}
+
+.trace{font-family:var(--mono);font-size:.85rem;margin:1.8rem 0 0;padding:1rem 1.1rem;border:1px solid var(--trait);background:rgba(16,32,156,.55);max-width:27rem}
+.trace .cmd{color:var(--drapeau);margin:0 0 .5rem}
+.trace ol{list-style:none;margin:0;padding:0}
+.trace a{display:grid;grid-template-columns:1.6rem 1fr auto;gap:.6rem;padding:.22rem 0;text-decoration:none}
+.trace a span:last-child{color:var(--craie-douce)}
+.trace a:hover span:nth-child(2){text-decoration:underline}
+
+.frise{list-style:none;margin:0;padding:0;border-left:2px solid var(--trait)}
+.frise li{position:relative;padding:0 0 1.5rem 1.4rem}
+.frise li::before{content:"";position:absolute;left:-7px;top:.45rem;width:12px;height:12px;background:var(--outremer);border:2px solid var(--craie);transform:rotate(45deg)}
+.frise li.futur::before{border-color:var(--drapeau);border-style:dashed}
+.frise time{font-family:var(--mono);font-size:.8rem;color:var(--drapeau)}
+.frise p{margin:.15rem 0 0}
+
+.chantiers{display:grid;gap:1.4rem;margin-top:1.5rem}
+.chantier{padding-left:1.1rem;border-left:3px solid var(--craie)}
+.chantier.cours{border-left-color:var(--drapeau)}
+.chantier p{margin:0}
+.etat{font-family:var(--mono);font-size:.75rem;color:var(--drapeau);margin-left:.4rem;white-space:nowrap}
+.suite{margin-top:1.5rem;padding-top:1rem;border-top:1px dashed var(--trait)}
+
+.tableau{display:grid;grid-template-columns:auto 1fr;gap:.55rem 1.2rem;margin:1.4rem 0 0}
+.tableau dt{font-family:var(--titre);font-stretch:112%;font-weight:800}
+.tableau dd{margin:0}
+
+.colis{margin-top:1.8rem;padding:1.1rem;border:2px solid var(--drapeau);background:rgba(16,32,156,.7)}
+.colis p{margin:0 0 .8rem}
+.colis form{display:flex;flex-wrap:wrap;gap:.6rem}
+.colis input{flex:1 1 12rem;min-width:0;font:inherit;font-family:var(--mono);font-size:.9rem;padding:.55rem .7rem;color:var(--craie);background:var(--outremer-profond);border:1px solid var(--craie-douce)}
+.colis input::placeholder{color:var(--craie-douce);opacity:.7}
+.bouton{display:inline-block;font:inherit;font-family:var(--titre);font-stretch:112%;font-weight:800;padding:.6rem 1.1rem;color:var(--outremer-profond);background:var(--drapeau);border:2px solid var(--drapeau);text-decoration:none;cursor:pointer}
+.bouton:hover{background:var(--craie);border-color:var(--craie)}
+.bouton.creux{color:var(--craie);background:transparent;border-color:var(--craie)}
+.bouton.creux:hover{color:var(--outremer-profond);background:var(--craie)}
+.actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.6rem}
+#verdict{font-family:var(--mono);font-size:.85rem;margin:.8rem 0 0;min-height:1.3em}
+
+.familles{display:grid;gap:1.3rem;margin-top:1.4rem}
+.familles ul{list-style:none;margin:.3rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.4rem .5rem}
+.familles li{padding:.2rem .65rem;border:1px solid var(--trait);background:rgba(16,32,156,.55);font-size:.95rem}
+.familles li.appris{border-style:dashed;color:var(--craie-douce)}
+
+.liens{list-style:none;margin:1.5rem 0 0;padding:0;border-top:1px solid var(--trait)}
+.liens li{display:flex;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid var(--trait)}
+.liens a{font-family:var(--titre);font-stretch:112%;font-weight:800}
+.liens .vide{color:var(--craie-douce)}
+footer{position:relative;z-index:2;padding:1.5rem var(--marge) 2rem;font-size:.85rem;color:var(--craie-douce)}
+
+@media (max-width:820px){
+  .voile{background:linear-gradient(0deg,var(--outremer) 0%,rgba(26,47,208,.55) 38%,rgba(26,47,208,0) 60%)}
+  .sauts{display:none}
+  .position{display:block;margin-left:auto}
+  .saut{align-items:flex-end;padding:44vh 0 0}
+  .contenu{width:100%;padding:1.6rem var(--marge) 3.5rem;background:linear-gradient(rgba(26,47,208,.78),var(--outremer) 9rem);border-top:1px solid var(--trait)}
+  body.sans3d .saut{padding-top:5rem}
+  .tableau{grid-template-columns:1fr;gap:.1rem}
+  .tableau dd{margin-bottom:.7rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="voile" aria-hidden="true"></div>
+<div class="avance" id="avance" aria-hidden="true"></div>
+
+<header class="entete">
+  <a class="nom" href="#profil">Nolan Siche-Rémy</a>
+  <nav aria-label="Sections">
+    <ul class="sauts" id="sauts">
+      <li><a href="#profil" data-en="Profile">Profil</a></li>
+      <li><a href="#parcours" data-en="Background">Parcours</a></li>
+      <li><a href="#terrain" data-en="Field work">Terrain</a></li>
+      <li><a href="#entrainement" data-en="Training">Entraînement</a></li>
+      <li><a href="#competences" data-en="Skills">Compétences</a></li>
+      <li><a href="#hors-ligne" data-en="Offline">Hors ligne</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+  <span class="position" id="position" aria-hidden="true"><b>1</b>/7 profil</span>
+  <button class="langue" id="langue" type="button" lang="en" aria-label="Switch to English">EN</button>
+</header>
+
+<main>
+  <section class="saut" id="profil">
+    <div class="contenu">
+      <h1>Nolan <span style="white-space:nowrap">Siche-Rémy</span></h1>
+      <p class="chapo" data-en="Apprentice cybersecurity engineer. During the week I protect an aerospace manufacturing site. The rest of the time I hunt flags.">Apprenti ingénieur en cybersécurité. La semaine, je protège un site industriel de l'aéronautique. Le reste du temps, je chasse des flags.</p>
+      <p class="doux" data-en="20 years old, engineering student at ESNA (Bruz, France), IT and cybersecurity apprentice at Mecachrome.">20 ans, élève ingénieur à l'ESNA de Bruz, apprenti IT et cybersécurité chez Mecachrome.</p>
+      <div class="trace">
+        <p class="cmd">$ traceroute nolan</p>
+        <ol>
+          <li><a href="#profil"><span>1</span><span data-en="profile">profil</span><span>10.0.1.1</span></a></li>
+          <li><a href="#parcours"><span>2</span><span data-en="background">parcours</span><span>10.0.2.1</span></a></li>
+          <li><a href="#terrain"><span>3</span><span data-en="field work">terrain</span><span>10.0.3.1</span></a></li>
+          <li><a href="#entrainement"><span>4</span><span data-en="training">entraînement</span><span>10.0.4.1</span></a></li>
+          <li><a href="#competences"><span>5</span><span data-en="skills">compétences</span><span>10.0.5.1</span></a></li>
+          <li><a href="#hors-ligne"><span>6</span><span data-en="offline">hors ligne</span><span>10.0.6.1</span></a></li>
+          <li><a href="#contact"><span>7</span><span>contact</span><span>10.0.7.1</span></a></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="saut" id="parcours">
+    <div class="contenu">
+      <p class="adresse" data-en="hop 2 / 10.0.2.1">saut 2 / 10.0.2.1</p>
+      <h2 data-en="From helpdesk to engineering school">Du support au cycle ingénieur</h2>
+      <ol class="frise">
+        <li><time>2023</time><h3 data-en="French Baccalaureate, Maths and Computer Science">Bac général, spécialités Maths et NSI</h3><p data-en="Lycée Aristide-Briand, Saint-Nazaire, France.">Lycée Aristide-Briand, Saint-Nazaire.</p></li>
+        <li><time data-en="2024 to 2026">2024 à 2026</time><h3 data-en="BTS SIO, a two-year degree in IT systems and networks">BTS SIO, option SISR</h3><p data-en="Lycée Carcouët, Nantes. In 2025, a systems and network administration internship at Mecachrome, then a summer contract as an IT technician.">Lycée Carcouët, Nantes. En 2025, stage d'administration systèmes et réseaux chez Mecachrome, puis un été en intérim comme technicien informatique.</p></li>
+        <li><time data-en="September 2025">Septembre 2025</time><h3 data-en="IT and cybersecurity apprentice at Mecachrome">Apprenti IT et cybersécurité chez Mecachrome</h3><p data-en="At the Saint-André-des-Eaux site, in the IT department.">Sur le site de Saint-André-des-Eaux, au service informatique.</p></li>
+        <li><time data-en="2026 to 2029">2026 à 2029</time><h3 data-en="ESNA, master's-level engineering degree in cybersecurity">ESNA, cycle ingénieur parcours cybersécurité</h3><p data-en="Three years of work-study in Bruz, near Rennes.">Trois ans en apprentissage à Bruz, près de Rennes.</p></li>
+        <li class="futur"><time data-en="Summer 2027">Été 2027</time><h3 data-en="International internship">Mobilité internationale</h3><p data-en="Three months abroad. I am still looking for where: <a href='#contact'>let's talk</a>.">Trois mois à l'étranger. Je cherche encore où : <a href="#contact">parlons-en</a>.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="saut" id="terrain">
+    <div class="contenu">
+      <p class="adresse" data-en="hop 3 / 10.0.3.1">saut 3 / 10.0.3.1</p>
+      <h2 data-en="Security on the shop floor">La cyber dans un atelier</h2>
+      <p data-en="A production site with about a hundred workstations, 150 users, machine tools and USB sticks passing from hand to hand. Here, security is built together with maintenance and production.">Un site de production : une centaine de postes, 150 utilisateurs, des machines-outils et des clés USB qui circulent. Ici la sécurité se construit avec la maintenance et la production.</p>
+      <div class="chantiers">
+        <article class="chantier">
+          <h3 data-en="USB sanitizing station">Station blanche</h3>
+          <p data-en="A kiosk that scans USB sticks before they touch the network. I built it on Keysas, the open-source solution from ANSSI, the French cybersecurity agency: Debian in kiosk mode, a mini PC, a 7-inch screen and a 3D-printed stand.">Une borne où l'on analyse sa clé USB avant qu'elle touche le réseau. Je l'ai montée sur Keysas, la solution open source de l'ANSSI : Debian en mode kiosque, mini PC, écran 7 pouces et support imprimé en 3D.</p>
+        </article>
+        <article class="chantier">
+          <h3 data-en="Access security">Sécurité des accès</h3>
+          <p data-en="MFA rollout and user training on Bitwarden to replace the browser's password manager.">Déploiement de la MFA et formation des utilisateurs à Bitwarden pour remplacer le gestionnaire du navigateur.</p>
+        </article>
+        <article class="chantier">
+          <h3 data-en="Monitoring and remote support">Supervision et prise en main</h3>
+          <p data-en="Zabbix installed with a server and agents on every device, plus a self-hosted RustDesk server for remote support.">Installation de Zabbix, serveur et agents sur tous les équipements, et d'un serveur RustDesk pour la prise en main à distance.</p>
+        </article>
+        <article class="chantier">
+          <h3 data-en="Compliance and risk">Conformité et risques</h3>
+          <p data-en="Preparing AirCyber, the aerospace industry's cyber maturity framework, aiming for Silver and then Gold. I also rate the cyber criticality of production machines by adapting the PIEU method already used by maintenance.">Préparation du référentiel AirCyber de la filière aéronautique, niveau Silver puis Gold. J'évalue aussi la criticité cyber des machines de production en adaptant la méthode PIEU de la maintenance.</p>
+        </article>
+        <article class="chantier">
+          <h3 data-en="Administration and patching">Administration et correctifs</h3>
+          <p data-en="Active Directory, GPO and MDM, account creation automated with PowerShell, helpdesk through GLPI. Patch Tuesday follow-up and hardening of workstations and servers.">Active Directory, GPO et MDM, création des comptes automatisée en PowerShell, support via GLPI. Suivi du Patch Tuesday et durcissement des postes et serveurs.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="saut" id="entrainement">
+    <div class="contenu">
+      <p class="adresse" data-en="hop 4 / 10.0.4.1">saut 4 / 10.0.4.1</p>
+      <h2 data-en="Capturing flags">Capturer des flags</h2>
+      <p data-en="I train on challenge platforms and write a memo for every technique I learn.">Je m'entraîne sur des plateformes de challenges et je rédige un mémo pour chaque technique apprise.</p>
+      <dl class="tableau">
+        <dt>Root-Me</dt><dd data-en="<a href='https://www.root-me.org/Blue-676870?lang=en' rel='noopener'>Blue</a>, 1,425 points in November 2026. Goal: 5,000 points this school year. Current category: Web Server."><a href="https://www.root-me.org/Blue-676870?lang=fr" rel="noopener">Blue</a>, 1&nbsp;425 points en novembre 2026. Objectif : 5&nbsp;000 points cette année. Catégorie du moment : Web-Serveur.</dd>
+        <dt>YesWeHack</dt><dd data-en="Verified account, first steps in bug bounty.">Compte vérifié, premiers pas en bug bounty.</dd>
+        <dt>Hack The Box, TryHackMe</dt><dd data-en="Getting started.">En démarrage.</dd>
+        <dt>CTF</dt><dd data-en="Online and on site, whenever the calendar allows.">En ligne et sur place, dès que le calendrier le permet.</dd>
+        <dt data-en="Toolbox">Outils</dt><dd>Kali Linux, Burp Suite, Caido, Nmap, Wireshark, Gobuster, CyberChef, Netcat, Hashcat, John the Ripper, Metasploit, Ghidra.</dd>
+        <dt data-en="Next step">Prochain palier</dt><dd data-en="C, assembly, then binary exploitation. Write-ups will follow on <a href='https://github.com/Bluethox' rel='noopener'>GitHub</a>.">Le C, l'assembleur, puis l'exploitation de binaires. Les write-ups arriveront sur <a href="https://github.com/Bluethox" rel="noopener">GitHub</a>.</dd>
+      </dl>
+      <div class="colis" id="colis" data-cargo="QUJZTkF7N19mbmhnZl9yZ19oYV9lYmcxM30=">
+        <h3 data-en="A flag is hidden in this page">Un flag est caché dans cette page</h3>
+        <p data-en="Format <span style='font-family:var(--mono)'>NOLAN{...}</span>. The source code holds the first clue.">Format <span style="font-family:var(--mono)">NOLAN{...}</span>. Le code source donne le premier indice.</p>
+        <form id="formFlag">
+          <label for="champFlag" style="position:absolute;left:-999em">Flag</label>
+          <input id="champFlag" name="flag" type="text" autocomplete="off" spellcheck="false" placeholder="NOLAN{...}">
+          <button class="bouton" type="submit" data-en="Submit flag">Valider le flag</button>
+        </form>
+        <p id="verdict" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="saut" id="competences">
+    <div class="contenu">
+      <p class="adresse" data-en="hop 5 / 10.0.5.1">saut 5 / 10.0.5.1</p>
+      <h2 data-en="What I can do">Ce que je sais faire</h2>
+      <p data-en="Dashed outlines mark what I am learning right now.">Les pointillés signalent ce que j'apprends en ce moment.</p>
+      <div class="familles">
+        <div><h3 data-en="Security">Sécurité</h3><ul><li>MFA</li><li>Bitwarden</li><li data-en="Patch management">Gestion des correctifs</li><li data-en="Hardening">Durcissement</li><li data-en="AirCyber framework">Référentiel AirCyber</li><li class="appris">Bug bounty</li></ul></div>
+        <div><h3 data-en="Offensive tooling">Outils offensifs</h3><ul><li>Kali Linux</li><li>Burp Suite</li><li>Caido</li><li>Nmap</li><li>Wireshark</li><li>Gobuster</li><li>CyberChef</li><li>Netcat</li><li>Hashcat</li><li>John the Ripper</li><li>Metasploit</li><li>Ghidra</li></ul></div>
+        <div><h3 data-en="Systems">Systèmes</h3><ul><li>Windows 10/11</li><li>Windows Server</li><li>Active Directory</li><li>GPO</li><li>DHCP</li><li>DNS</li><li>MDM</li><li>Debian</li><li>Ubuntu</li></ul></div>
+        <div><h3 data-en="Networking">Réseaux</h3><ul><li>TCP/IP</li><li>VLAN</li><li data-en="Routing">Routage</li><li>Cisco</li><li>Aruba</li><li class="appris">Fortinet (NSE)</li></ul></div>
+        <div><h3 data-en="Tools and services">Outils et services</h3><ul><li>Zabbix</li><li>GLPI</li><li>RustDesk</li><li>VMware Workstation</li><li>VirtualBox</li><li>Apache</li><li>NGINX</li><li>MariaDB</li><li>SSH, SFTP, FTPS</li></ul></div>
+        <div><h3 data-en="Scripting and code">Scripts et code</h3><ul><li>PowerShell</li><li>Python</li><li>Bash</li><li>SQL</li><li>C#</li><li>Java</li><li>PHP</li><li>HTML/CSS</li><li class="appris" data-en="C and assembly">C et assembleur</li></ul></div>
+        <div><h3 data-en="Languages">Langues</h3><ul><li data-en="French, native">Français, natif</li><li data-en="English, B2/C1">Anglais, B2/C1</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="saut" id="hors-ligne">
+    <div class="contenu">
+      <p class="adresse" data-en="hop 6 / 10.0.6.1">saut 6 / 10.0.6.1</p>
+      <h2 data-en="Unplugged">Débranché</h2>
+      <dl class="tableau">
+        <dt data-en="Boxing">Boxe anglaise</dt><dd data-en="A passion for almost two years.">Une passion depuis bientôt deux ans.</dd>
+        <dt data-en="Motorcycling">Moto</dt><dd data-en="On the road, whatever the weather.">Sur la route, peu importe la météo.</dd>
+        <dt data-en="Video games">Jeux vidéo</dt><dd data-en="To switch off, or not quite.">Pour décrocher, ou presque.</dd>
+        <dt data-en="Surfing and volleyball">Surf et volley</dt><dd data-en="Less often, always with pleasure.">Plus rarement, toujours avec plaisir.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="saut" id="contact">
+    <div class="contenu">
+      <p class="adresse" data-en="hop 7 / 10.0.7.1">saut 7 / 10.0.7.1</p>
+      <h2 data-en="Summer 2027: I am going abroad">Été 2027 : je pars à l'étranger</h2>
+      <p data-en="I am looking for a three-month internship outside France, in cybersecurity (SOC, audit, infrastructure security) or more broadly in IT.">Je cherche un stage de trois mois hors de France, en cybersécurité (SOC, audit, sécurité des infrastructures) ou plus largement en informatique.</p>
+      <p class="doux" data-en="Based in Bruz, near Rennes, France.">Basé à Bruz, près de Rennes.</p>
+      <ul class="liens" id="liens"></ul>
+      <div class="actions"><a class="bouton creux" href="#profil" data-en="Back to the first hop">Revenir au premier saut</a></div>
+    </div>
+  </section>
+</main>
+<footer data-en="Nolan Siche-Rémy, 2026. Network drawn in WebGL with three.js.">Nolan Siche-Rémy, 2026. Réseau dessiné en WebGL avec three.js.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* Renseigne tes liens ici : une url vide s'affiche comme « à ajouter ». */
+const CONFIG = {
+  liens: [
+    { nom: "E-mail",   url: "mailto:nolan.siche@gmail.com", texte: "nolan.siche@gmail.com" },
+    { nom: "LinkedIn", url: "https://www.linkedin.com/in/nolan-siche-r%C3%A9my-3282ba274/", texte: "Nolan Siche-Rémy" },
+    { nom: "Root-Me",  url: "https://www.root-me.org/Blue-676870?lang=fr", texte: "Blue" },
+    { nom: "GitHub",   url: "https://github.com/Bluethox", texte: "Bluethox" }
+  ]
+};
+
+const NOMS_L = { fr: ["profil","parcours","terrain","entraînement","compétences","hors ligne","contact"], en: ["profile","background","field work","training","skills","offline","contact"] };
+const MSG = {
+  fr: { vide: "Saisis un flag au format NOLAN{...}.", ok: "Flag validé. Bien joué, écris-moi pour me dire comment tu l'as trouvé.", ko: "Ce n'est pas le bon flag. Relis l'indice du code source." },
+  en: { vide: "Enter a flag in the NOLAN{...} format.", ok: "Flag accepted. Well played, write to me and tell me how you found it.", ko: "That is not the flag. Read the clue in the source code again." }
+};
+let lang = "fr";
+let actif = -1;
+const sections = Array.from(document.querySelectorAll(".saut"));
+const liensNav = Array.from(document.querySelectorAll("#sauts a"));
+const position = document.getElementById("position");
+const avance = document.getElementById("avance");
+const calme = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Contact */
+(function(){
+  const ul = document.getElementById("liens");
+  CONFIG.liens.forEach(function(l){
+    const li = document.createElement("li");
+    if (l.url) {
+      const a = document.createElement("a"); a.href = l.url; a.textContent = l.nom; a.rel = "noopener";
+      const s = document.createElement("span"); s.textContent = l.texte || l.url.replace(/^(https?:\/\/|mailto:)/, "");
+      li.append(a, s);
+    } else {
+      const n = document.createElement("span"); n.textContent = l.nom;
+      const s = document.createElement("span"); s.className = "vide"; s.textContent = "à ajouter";
+      li.append(n, s);
+    }
+    ul.appendChild(li);
+  });
+})();
+
+/* Flag */
+(function(){
+  function rot13(s){ return s.replace(/[a-z]/gi, function(c){ const b = c <= "Z" ? 65 : 97; return String.fromCharCode((c.charCodeAt(0) - b + 13) % 26 + b); }); }
+  const attendu = rot13(atob(document.getElementById("colis").dataset.cargo));
+  const verdict = document.getElementById("verdict");
+  document.getElementById("formFlag").addEventListener("submit", function(e){
+    e.preventDefault();
+    const v = document.getElementById("champFlag").value.trim();
+    if (!v) { verdict.textContent = MSG[lang].vide; return; }
+    verdict.textContent = v === attendu ? MSG[lang].ok : MSG[lang].ko;
+  });
+  console.log("%cUn flag traîne ici. Indice : inspecte le colis jaune (#colis).", "color:#ffd84a;background:#10209c;padding:4px 8px");
+})();
+
+/* Position dans le traceroute */
+let tops = [];
+function mesurer(){ tops = sections.map(function(s){ return s.offsetTop; }); }
+function lire(){
+  const y = window.scrollY, max = document.documentElement.scrollHeight - window.innerHeight;
+  let i = 0;
+  for (let k = 0; k < tops.length; k++) if (y >= tops[k] - 1) i = k;
+  let frac = 0;
+  if (i < tops.length - 1) frac = Math.min(1, Math.max(0, (y - tops[i]) / (tops[i + 1] - tops[i])));
+  return { i: i, frac: frac, total: max > 0 ? y / max : 0 };
+}
+function marquer(n){
+  if (n === actif) return; actif = n;
+  liensNav.forEach(function(a, k){ if (k === n) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+  position.innerHTML = "<b>" + (n + 1) + "</b>/7 " + NOMS_L[lang][n];
+}
+function suivre(){ const p = lire(); marquer(p.frac > 0.72 ? p.i + 1 : p.i); avance.style.transform = "scaleX(" + p.total + ")"; }
+
+/* Langue */
+(function(){
+  const els = Array.from(document.querySelectorAll("[data-en]"));
+  els.forEach(function(el){ el.dataset.fr = el.innerHTML; });
+  const bouton = document.getElementById("langue");
+  function appliquer(l){
+    lang = l;
+    els.forEach(function(el){ el.innerHTML = l === "en" ? el.dataset.en : el.dataset.fr; });
+    document.documentElement.lang = l;
+    bouton.textContent = l === "en" ? "FR" : "EN";
+    bouton.lang = l === "en" ? "fr" : "en";
+    bouton.setAttribute("aria-label", l === "en" ? "Passer en français" : "Switch to English");
+    document.getElementById("verdict").textContent = "";
+    const n = actif; actif = -1; mesurer(); if (n >= 0) marquer(n);
+  }
+  let choix = null;
+  try { choix = localStorage.getItem("langue"); } catch (e) {}
+  if (choix !== "fr" && choix !== "en") choix = /^fr/i.test(navigator.language || "fr") ? "fr" : "en";
+  if (choix === "en") appliquer("en");
+  bouton.addEventListener("click", function(){
+    const l = lang === "en" ? "fr" : "en";
+    appliquer(l);
+    try { localStorage.setItem("langue", l); } catch (e) {}
+  });
+})();
+mesurer(); suivre();
+window.addEventListener("scroll", suivre, { passive: true });
+window.addEventListener("load", function(){ mesurer(); suivre(); });
+
+/* Scène 3D */
+(function(){
+  if (!window.THREE) { document.body.classList.add("sans3d"); return; }
+  const T = THREE, canvas = document.getElementById("scene");
+  let renderer;
+  try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true }); }
+  catch (e) { document.body.classList.add("sans3d"); return; }
+  const BLEU = 0x1a2fd0, CRAIE = 0xf2f4ff, JAUNE = 0xffd84a;
+  renderer.setClearColor(BLEU);
+  const scene = new T.Scene();
+  scene.fog = new T.Fog(BLEU, 12, 62);
+  const camera = new T.PerspectiveCamera(50, 1, 0.1, 220);
+
+  const P = [[0,0,0],[14,3,-16],[-6,-2,-34],[12,5,-52],[-10,0,-70],[8,-4,-88],[0,2,-108]].map(function(a){ return new T.Vector3(a[0],a[1],a[2]); });
+  const OFF = [[0,1,12],[4,3,11],[-5,2,11],[3,1.5,11],[-4,3,11],[5,4,12],[0,1.5,13]].map(function(a){ return new T.Vector3(a[0],a[1],a[2]); });
+
+  function trait(c, o){ return new T.LineBasicMaterial({ color: c, transparent: true, opacity: o === undefined ? 1 : o }); }
+  function aretes(geo, mat){ return new T.LineSegments(new T.EdgesGeometry(geo), mat); }
+  function anneau(r, mat, n){
+    const pts = []; n = n || 72;
+    for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2; pts.push(new T.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r)); }
+    return new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), mat);
+  }
+  const anim = [];
+  const groupes = P.map(function(p){ const g = new T.Group(); g.position.copy(p); scene.add(g); return g; });
+  const mats = P.map(function(){ return { c: trait(CRAIE), j: trait(JAUNE) }; });
+
+  /* 1 profil : globe réseau */
+  (function(g, m){
+    const globe = new T.LineSegments(new T.WireframeGeometry(new T.IcosahedronGeometry(3, 1)), m.c);
+    const pts = [];
+    for (let i = 0; i < 140; i++){ const v = new T.Vector3().setFromSphericalCoords(4.3, Math.acos(2 * Math.random() - 1), Math.random() * Math.PI * 2); pts.push(v); }
+    const nuage = new T.Points(new T.BufferGeometry().setFromPoints(pts), new T.PointsMaterial({ color: JAUNE, size: 0.09 }));
+    const a1 = anneau(5, m.c); a1.rotation.x = 0.5;
+    g.add(globe, nuage, a1);
+    anim.push(function(t){ globe.rotation.y = t * 0.12; globe.rotation.x = t * 0.05; nuage.rotation.y = -t * 0.06; a1.rotation.z = t * 0.1; });
+  })(groupes[0], mats[0]);
+
+  /* 2 parcours : marches */
+  (function(g, m){
+    const esc = new T.Group();
+    for (let i = 0; i < 4; i++){ const h = 0.8 * (i + 1); const b = aretes(new T.BoxGeometry(1.5, h, 2.4), m.c); b.position.set((i - 1.5) * 1.5, h / 2 - 1.8, 0); esc.add(b); }
+    const but = aretes(new T.OctahedronGeometry(0.5), m.j); esc.add(but);
+    g.add(esc);
+    anim.push(function(t){ esc.rotation.y = -0.5 + Math.sin(t * 0.3) * 0.25; but.position.set(2.25, 2.2 + Math.sin(t * 1.6) * 0.2, 0); but.rotation.y = t; });
+  })(groupes[1], mats[1]);
+
+  /* 3 terrain : station blanche */
+  (function(g, m){
+    const borne = new T.Group();
+    const corps = aretes(new T.BoxGeometry(2.4, 3, 1.5), m.c); corps.position.y = -0.6;
+    const ecran = aretes(new T.BoxGeometry(2, 1.25, 0.1), m.c); ecran.position.set(0, 1.6, 0.35); ecran.rotation.x = -0.45;
+    const cle = aretes(new T.BoxGeometry(0.36, 0.95, 0.16), m.j);
+    const garde = anneau(3.3, m.c); const garde2 = anneau(3.3, m.c); garde2.rotation.x = Math.PI / 2;
+    borne.add(corps, ecran, cle, garde, garde2); g.add(borne);
+    anim.push(function(t){ borne.rotation.y = 0.5 + Math.sin(t * 0.25) * 0.35; cle.position.set(1.9, -0.3 + Math.sin(t * 1.2) * 0.35, 0.4); garde.rotation.z = t * 0.2; garde2.rotation.y = t * 0.15; });
+  })(groupes[2], mats[2]);
+
+  /* 4 entraînement : drapeau */
+  (function(g, m){
+    const mat = new T.Group();
+    const hampe = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(0,-3,0), new T.Vector3(0,3,0)]), m.c);
+    const geo = new T.PlaneGeometry(3.6, 2.2, 16, 8);
+    const base = geo.attributes.position.array.slice();
+    const toile = new T.Mesh(geo, new T.MeshBasicMaterial({ color: JAUNE, wireframe: true, transparent: true }));
+    toile.position.set(1.8, 1.9, 0);
+    m.j = toile.material;
+    const socle = anneau(1.6, m.c); socle.position.y = -3; const socle2 = anneau(2.4, m.c); socle2.position.y = -3;
+    mat.add(hampe, toile, socle, socle2); g.add(mat);
+    anim.push(function(t){
+      const a = geo.attributes.position.array;
+      for (let i = 0; i < a.length; i += 3){ const x = base[i] + 1.8; a[i + 2] = Math.sin(x * 1.7 - t * 3) * 0.1 * x; }
+      geo.attributes.position.needsUpdate = true;
+      mat.rotation.y = Math.sin(t * 0.3) * 0.3;
+    });
+  })(groupes[3], mats[3]);
+
+  /* 5 compétences : noyau et orbites */
+  (function(g, m){
+    const noyau = aretes(new T.OctahedronGeometry(1.7), m.c); g.add(noyau);
+    const orb = [];
+    [[0.3,0,2.9],[1.2,0.4,3.7],[-0.9,0.8,4.5],[0.1,1.5,5.2]].forEach(function(o, i){
+      const piv = new T.Group(); piv.rotation.set(o[0], 0, o[1]);
+      const sat = aretes(new T.TetrahedronGeometry(0.42), i === 3 ? m.j : m.c); sat.position.x = o[2];
+      piv.add(anneau(o[2], m.c), sat); g.add(piv); orb.push({ p: piv, s: sat, v: 0.5 - i * 0.09 });
+    });
+    anim.push(function(t){ noyau.rotation.y = t * 0.3; noyau.rotation.x = t * 0.17; orb.forEach(function(o){ o.p.rotation.y = t * o.v; o.s.rotation.x = t; }); });
+  })(groupes[4], mats[4]);
+
+  /* 6 hors ligne : ring de boxe */
+  (function(g, m){
+    const ring = new T.Group();
+    const sol = aretes(new T.BoxGeometry(6, 0.5, 6), m.c); sol.position.y = -1.6; ring.add(sol);
+    [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(c){ const po = aretes(new T.BoxGeometry(0.22, 2.4, 0.22), m.c); po.position.set(c[0] * 2.7, -0.15, c[1] * 2.7); ring.add(po); });
+    [0.1, 0.55, 1].forEach(function(h, i){
+      const pts = [[-2.7,-2.7],[2.7,-2.7],[2.7,2.7],[-2.7,2.7]].map(function(c){ return new T.Vector3(c[0], h - 0.2, c[1]); });
+      ring.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), i === 2 ? m.j : m.c));
+    });
+    ring.rotation.x = 0.15; g.add(ring);
+    anim.push(function(t){ ring.rotation.y = t * 0.15; });
+  })(groupes[5], mats[5]);
+
+  /* 7 contact : antenne */
+  (function(g, m){
+    const ant = new T.Group();
+    const para = new T.LineSegments(new T.WireframeGeometry(new T.ConeGeometry(1.9, 1.1, 14, 1, true)), m.c); para.rotation.x = Math.PI; para.position.y = 0.5;
+    const pied = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(0,-3,0), new T.Vector3(0,1.8,0)]), m.c);
+    const base = anneau(1.4, m.c); base.position.y = -3;
+    ant.add(para, pied, base);
+    const ondes = [0, 1, 2].map(function(){ const mm = trait(JAUNE); const o = anneau(1, mm); o.position.y = 1.8; ant.add(o); return { o: o, m: mm }; });
+    m.ondes = ondes;
+    ant.rotation.z = -0.25; g.add(ant);
+    anim.push(function(t){ ondes.forEach(function(w, i){ const k = ((t * 0.35 + i / 3) % 1); const s = 0.4 + k * 4.2; w.o.scale.set(s, 1, s); w.o.position.y = 1.8 + k * 1.6; w.m.opacity = (1 - k) * (m.j.opacity); }); });
+  })(groupes[6], mats[6]);
+
+  /* Chemin, paquets, nœuds secondaires, sol */
+  const courbe = new T.CatmullRomCurve3(P, false, "catmullrom", 0.4);
+  const ligne = new T.Line(new T.BufferGeometry().setFromPoints(courbe.getPoints(320)), new T.LineDashedMaterial({ color: CRAIE, dashSize: 0.5, gapSize: 0.35, transparent: true, opacity: 0.6 }));
+  ligne.computeLineDistances(); scene.add(ligne);
+
+  const NB = 20, paquetsGeo = new T.BufferGeometry();
+  paquetsGeo.setAttribute("position", new T.BufferAttribute(new Float32Array(NB * 3), 3));
+  scene.add(new T.Points(paquetsGeo, new T.PointsMaterial({ color: JAUNE, size: 0.32 })));
+
+  const sec = [];
+  for (let i = 0; i < 230; i++){
+    const c = courbe.getPoint(Math.random()), r = 6 + Math.random() * 17, a = Math.random() * Math.PI * 2;
+    sec.push(new T.Vector3(c.x + Math.cos(a) * r, c.y + Math.sin(a) * r * 0.6, c.z + (Math.random() - 0.5) * 10));
+  }
+  scene.add(new T.Points(new T.BufferGeometry().setFromPoints(sec), new T.PointsMaterial({ color: CRAIE, size: 0.16 })));
+  const seg = [];
+  sec.forEach(function(a, i){
+    let n = 0;
+    for (let k = i + 1; k < sec.length && n < 2; k++) if (a.distanceTo(sec[k]) < 6.5){ seg.push(a, sec[k]); n++; }
+  });
+  scene.add(new T.LineSegments(new T.BufferGeometry().setFromPoints(seg), trait(CRAIE, 0.22)));
+
+  const sol = new T.GridHelper(420, 84, CRAIE, CRAIE);
+  sol.material.transparent = true; sol.material.opacity = 0.13; sol.position.set(0, -13, -54); scene.add(sol);
+
+  /* Cadrage */
+  let etroit = false, w = 0, h = 0;
+  function cadrer(){
+    w = window.innerWidth; h = window.innerHeight; etroit = w <= 820;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.fov = etroit ? 58 : 50;
+    if (etroit) camera.setViewOffset(w, h, 0, Math.round(h * 0.24), w, h);
+    else camera.setViewOffset(w, h, -Math.round(w * 0.22), 0, w, h);
+    camera.updateProjectionMatrix();
+    mesurer();
+  }
+  window.addEventListener("resize", cadrer); cadrer();
+
+  const souris = { x: 0, y: 0 };
+  window.addEventListener("pointermove", function(e){ if (e.pointerType === "mouse"){ souris.x = e.clientX / w - 0.5; souris.y = e.clientY / h - 0.5; } }, { passive: true });
+
+  function lisse(a, b, x){ x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); }
+  const cible = new T.Vector3(), regard = new T.Vector3(), tmp = new T.Vector3(), tmp2 = new T.Vector3();
+  const pos = P[0].clone().add(new T.Vector3(0, 7, 46)), vue = P[0].clone();
+  if (calme) pos.copy(P[0]).add(OFF[0]);
+
+  let marche = true;
+  document.addEventListener("visibilitychange", function(){ marche = !document.hidden; if (marche) requestAnimationFrame(image); });
+
+  function image(ms){
+    if (!marche) return;
+    requestAnimationFrame(image);
+    const t = calme ? 0 : ms / 1000;
+    const p = lire(), e = lisse(0.5, 1, p.frac), j = Math.min(p.i + 1, P.length - 1), recul = etroit ? 1.3 : 1;
+    cible.copy(P[p.i]).add(tmp.copy(OFF[p.i]).multiplyScalar(recul));
+    tmp2.copy(P[j]).add(tmp.copy(OFF[j]).multiplyScalar(recul));
+    cible.lerp(tmp2, e);
+    cible.x += souris.x * 1.6; cible.y -= souris.y * 1.1;
+    regard.copy(P[p.i]).lerp(P[j], e);
+    const k = calme ? 1 : 0.07;
+    pos.lerp(cible, k); vue.lerp(regard, k);
+    camera.position.copy(pos); camera.lookAt(vue);
+
+    const proche = p.i + e;
+    mats.forEach(function(m, i){
+      const o = 0.3 + 0.7 * Math.max(0, 1 - Math.abs(i - proche));
+      m.c.opacity = o; m.j.opacity = o;
+    });
+    for (let i = 0; i < anim.length; i++) anim[i](t);
+    const a = paquetsGeo.attributes.position.array;
+    for (let i = 0; i < NB; i++){ const v = courbe.getPoint((t * 0.025 + i / NB) % 1); a[i * 3] = v.x; a[i * 3 + 1] = v.y; a[i * 3 + 2] = v.z; }
+    paquetsGeo.attributes.position.needsUpdate = true;
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(image);
+})();
+</script>
+</body>
+</html>
